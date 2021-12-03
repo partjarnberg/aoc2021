@@ -33,7 +33,6 @@ public class App {
                 case "up" -> aim[0] -= c.amount;
                 case "down" -> aim[0] += c.amount;
                 case "forward" -> { horizontal[0] += c.amount; depth[0] += aim[0] * c.amount; }
-
             }
         });
         return horizontal[0] * depth[0];
