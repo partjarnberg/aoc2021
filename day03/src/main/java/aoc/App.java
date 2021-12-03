@@ -22,9 +22,7 @@ public class App {
         Files.lines(Path.of("input.txt")).forEach(binaryString -> {
             result.noofRows++;
             char[] chars = binaryString.toCharArray();
-            range(0, result.bitOccur.length).forEach(i -> {
-                result.bitOccur[i] += Character.getNumericValue(chars[i]);
-            });
+            range(0, result.bitOccur.length).forEach(i -> result.bitOccur[i] += Character.getNumericValue(chars[i]));
         });
 
         range(0, result.bitOccur.length).forEach(i -> {
