@@ -13,23 +13,21 @@ import static java.util.Arrays.stream;
 import static java.util.stream.IntStream.range;
 
 public class App {
-    public Integer getSolutionPart1(List<int[]> report) throws IOException { // 3242606
-        final int[] bitOccur = new int[12], gammaRate = new int[12], epsilonRate = new int[12];
+    public Integer getSolutionPart1(List<int[]> report) { // 3242606
+        final int[] bitOccur = new int[report.get(0).length], gammaRate = new int[report.get(0).length], epsilonRate = new int[report.get(0).length];
         report.forEach(ints -> range(0, bitOccur.length).forEach(i -> bitOccur[i] += ints[i]));
         range(0, bitOccur.length).forEach(i -> {
             if(bitOccur[i] > report.size()/2) {
-                gammaRate[i] = 1;
-                epsilonRate[i] = 0;
+                gammaRate[i] = 1; epsilonRate[i] = 0;
             } else {
-                gammaRate[i] = 0;
-                epsilonRate[i] = 1;
+                gammaRate[i] = 0; epsilonRate[i] = 1;
             }
         });
         return parseInt(stream(gammaRate).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2) *
                 parseInt(stream(epsilonRate).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2);
     }
 
-    public Integer getSolutionPart2(List<int[]> report) throws IOException { // 4856080
+    public Integer getSolutionPart2(List<int[]> report) { // 4856080
         return parseInt(stream(getCandidate(report, true)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2) *
                 parseInt(stream(getCandidate(report, false)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2);
     }
