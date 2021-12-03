@@ -13,20 +13,11 @@ import static java.util.Arrays.stream;
 import static java.util.stream.IntStream.range;
 
 public class App {
-    public Integer getSolutionPart1() throws IOException { // 3242606
-        int[] gammaRate = new int[12], epsilonRate = new int[12];
-        var result = new Object() {
-            int noofRows = 0;
-            final int[] bitOccur = new int[12];
-        };
-        Files.lines(Path.of("input.txt")).forEach(binaryString -> {
-            result.noofRows++;
-            char[] chars = binaryString.toCharArray();
-            range(0, result.bitOccur.length).forEach(i -> result.bitOccur[i] += Character.getNumericValue(chars[i]));
-        });
-
-        range(0, result.bitOccur.length).forEach(i -> {
-            if(result.bitOccur[i] > result.noofRows/2) {
+    public Integer getSolutionPart1(List<int[]> report) throws IOException { // 3242606
+        final int[] bitOccur = new int[12], gammaRate = new int[12], epsilonRate = new int[12];
+        report.forEach(ints -> range(0, bitOccur.length).forEach(i -> bitOccur[i] += ints[i]));
+        range(0, bitOccur.length).forEach(i -> {
+            if(bitOccur[i] > report.size()/2) {
                 gammaRate[i] = 1;
                 epsilonRate[i] = 0;
             } else {
@@ -34,15 +25,11 @@ public class App {
                 epsilonRate[i] = 1;
             }
         });
-
         return parseInt(stream(gammaRate).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2) *
                 parseInt(stream(epsilonRate).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2);
     }
 
-    public Integer getSolutionPart2() throws IOException { // 4856080
-        final List<int[]> report = Files.lines(Path.of("input.txt")).map(binaryString ->
-                CharBuffer.wrap(binaryString.toCharArray()).chars().mapToObj(ch -> (char) ch)
-                        .mapToInt(Character::getNumericValue).toArray()).collect(Collectors.toList());
+    public Integer getSolutionPart2(List<int[]> report) throws IOException { // 4856080
         return parseInt(stream(getCandidate(report, true)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2) *
                 parseInt(stream(getCandidate(report, false)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2);
     }
@@ -59,10 +46,13 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException {
+        final List<int[]> report = Files.lines(Path.of("input.txt")).map(binaryString ->
+                CharBuffer.wrap(binaryString.toCharArray()).chars().mapToObj(ch -> (char) ch)
+                        .mapToInt(Character::getNumericValue).toArray()).collect(Collectors.toList());
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
         if (part.equals("part2"))
-            System.out.println(new App().getSolutionPart2());
+            System.out.println(new App().getSolutionPart2(report));
         else
-            System.out.println(new App().getSolutionPart1());
+            System.out.println(new App().getSolutionPart1(report));
     }
 }
