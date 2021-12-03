@@ -32,10 +32,8 @@ public class App {
             switch (c.direction) {
                 case "up" -> aim[0] -= c.amount;
                 case "down" -> aim[0] += c.amount;
-                case "forward" -> {
-                    horizontal[0] += c.amount;
-                    depth[0] += aim[0] * c.amount;
-                }
+                case "forward" -> { horizontal[0] += c.amount; depth[0] += aim[0] * c.amount; }
+
             }
         });
         return horizontal[0] * depth[0];
@@ -50,9 +48,7 @@ public class App {
     }
 
     private static List<Command> parseInput() throws IOException {
-        return Files.lines(Path.of("input.txt")).map(s -> {
-                    final String[] split = s.split(" ");
-                    return new Command(split[0], parseInt(split[1]));
-                }).collect(Collectors.toList());
+        return Files.lines(Path.of("input.txt")).map(line -> line.split(" "))
+                .map(a -> new Command(a[0], parseInt(a[1]))).collect(Collectors.toList());
     }
 }
