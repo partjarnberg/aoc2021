@@ -40,42 +40,27 @@ public class App {
     }
 
     public Integer getSolutionPart2() throws IOException { // 4856080
-        final List<int[]> reports = Files.lines(Path.of("input.txt")).map(binaryString ->
+        final List<int[]> report = Files.lines(Path.of("input.txt")).map(binaryString ->
                 CharBuffer.wrap(binaryString.toCharArray()).chars().mapToObj(ch -> (char) ch)
                         .mapToInt(Character::getNumericValue).toArray()).collect(Collectors.toList());
+        return parseInt(stream(getCandidate(report, true)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2) *
+                parseInt(stream(getCandidate(report, false)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2);
+    }
 
-        final AtomicReference<List<int[]>> oxygenRating = new AtomicReference<>(List.copyOf(reports));
-        range(0, reports.get(0).length).takeWhile(ignore -> oxygenRating.get().size() > 1).forEach(i -> {
-            long ones = oxygenRating.get().stream().filter(ints -> ints[i] == 1).count();
-            long zeros = oxygenRating.get().stream().filter(ints -> ints[i] == 0).count();
-            oxygenRating.set(oxygenRating.get().stream().filter(ints -> {
-                if (ones >= zeros) {
-                    return ints[i] == 1;
-                }
-                return ints[i] == 0;
-            }).toList());
+    private int[] getCandidate(final List<int[]> report, boolean oxygen) {
+        final AtomicReference<List<int[]>> candidates = new AtomicReference<>(List.copyOf(report));
+        range(0, report.get(0).length).takeWhile(ignore -> candidates.get().size() > 1).forEach(i -> {
+            long ones = candidates.get().stream().filter(ints -> ints[i] == 1).count();
+            long zeros = candidates.get().stream().filter(ints -> ints[i] == 0).count();
+            candidates.set(candidates.get().stream().filter(ints -> ones < zeros == oxygen ? ints[i] == 0 : ints[i] == 1).toList());
         });
-
-        final AtomicReference<List<int[]>> co2Rating = new AtomicReference<>(List.copyOf(reports));
-        range(0, reports.get(0).length).takeWhile(ignore -> co2Rating.get().size() > 1).forEach(i -> {
-            long ones = co2Rating.get().stream().filter(ints -> ints[i] == 1).count();
-            long zeros = co2Rating.get().stream().filter(ints -> ints[i] == 0).count();
-            co2Rating.set(co2Rating.get().stream().filter(ints -> {
-                if (zeros <= ones) {
-                    return ints[i] == 0;
-                }
-                return ints[i] == 1;
-            }).toList());
-        });
-        assert co2Rating.get().size() == 1;
-
-        return parseInt(stream(oxygenRating.get().get(0)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2) *
-                parseInt(stream(co2Rating.get().get(0)).mapToObj(i -> i + "").reduce("", (s, s2) -> s + s2), 2);
+        if(candidates.get().size() > 1) throw new IllegalStateException();
+        return candidates.get().get(0);
     }
 
     public static void main(String[] args) throws IOException {
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
-        if (part.equals("part1"))
+        if (part.equals("part2"))
             System.out.println(new App().getSolutionPart2());
         else
             System.out.println(new App().getSolutionPart1());
