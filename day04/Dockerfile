@@ -1,0 +1,9 @@
+FROM gradle:jdk17-alpine as BASE
+WORKDIR /src
+COPY ./ .
+RUN gradle build
+
+FROM openjdk:17-alpine
+COPY --from=BASE /src/build/libs/*.jar /app.jar
+COPY input.txt .
+CMD java -jar /app.jar
