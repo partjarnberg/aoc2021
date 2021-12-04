@@ -1,11 +1,12 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Integer.parseInt;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
@@ -20,81 +21,70 @@ public class App {
         }
     }
 
-    private record Boards(List<Cell[][]> boards) {}
+    public static class Board {
+        final Cell[][] cells;
+        int winningNumber = -1;
 
-    public Integer getSolutionPart1(final List<Integer> randoms, final  Boards boards) { // 72770
-        final AtomicInteger winningNumber = new AtomicInteger();
-        randoms.stream().takeWhile(number -> weHaveAWinner(boards))
-                .forEach(number -> {
-                    winningNumber.set(number);
-                    boards.boards.stream().takeWhile(ignore -> weHaveAWinner(boards))
-                            .forEach(cells -> range(0, 5).forEach(row ->
-                                    stream(cells[row]).forEach(cell -> {
-                                        if (number == cell.number) {
-                                            cell.marked = true;
-                                        }
-                                    })
-                            ));
-                });
-        final Cell[][] winner = getWinner(boards).orElseThrow();
-        final int sumOfUnmarked = range(0, 5).map(row -> range(0, 5)
-                .filter(col -> !winner[row][col].marked)
-                .map(col -> winner[row][col].number).sum()).sum();
+        public Board(final Cell[][] cells) {
+            checkArgument(cells.length == 5);
+            this.cells = cells;
+        }
 
-        return winningNumber.get() * sumOfUnmarked;
+        public void mark(final int number) {
+            range(0, 5).takeWhile(ignore -> !isAWinner()).forEach(row ->
+                    stream(cells[row]).filter(cell -> number == cell.number)
+                            .forEach(cell -> {
+                                cell.marked = true;
+                                if(hasWinningRow() || hasWinningCol()) {
+                                    winningNumber = number;
+                                }
+                            }));
+        }
+
+        private boolean hasWinningRow() {
+            return range(0, 5).anyMatch(row -> stream(cells[row]).allMatch(cell -> cell.marked));
+        }
+
+        private boolean hasWinningCol() {
+            return range(0, 5).anyMatch(col -> range(0, 5).allMatch(row -> cells[row][col].marked)
+            );
+        }
+
+        public boolean isAWinner() {
+            return winningNumber != -1;
+        }
+
+        public int sumOfUnmarked() {
+            return range(0, 5).map(row -> range(0, 5).filter(col -> !cells[row][col].marked).map(col -> cells[row][col].number).sum()).sum();
+        }
     }
 
-    public Integer getSolutionPart2(final List<Integer> randoms, Boards boards) { // 13912
-        var ref = new Object() {
-            Cell[][] winner = new Cell[5][5];
-            int winningNumber = 0;
-        };
-        randoms.forEach(number ->
-            boards.boards.forEach(board -> range(0, 5).forEach(row -> range(0, 5).forEach(col -> {
-                if (!isAWinner(board) && number == board[row][col].number) {
-                    board[row][col].marked = true;
-                    if(isAWinner(board)) {
-                        ref.winningNumber = number;
-                        ref.winner = board;
-                    }
-                }
-            })))
-        );
-        return ref.winningNumber * range(0, 5).map(row -> range(0, 5)
-                .filter(col -> !ref.winner[row][col].marked)
-                .map(col -> ref.winner[row][col].number).sum()).sum();
+    public Integer getSolutionPart1(final List<Integer> randoms, final List<Board> boards) { // 72770
+        randoms.stream().takeWhile(ignore -> boards.stream().noneMatch(Board::isAWinner)).forEach(number -> boards.forEach(board -> board.mark(number)));
+        final Board winner = boards.stream().filter(Board::isAWinner).findFirst().orElseThrow();
+        return winner.winningNumber * winner.sumOfUnmarked();
     }
 
-    private boolean isAWinner(final Cell[][] board) {
-        return range(0, 5).anyMatch(row -> {
-            if (stream(board[row]).allMatch(cell -> cell.marked))
-                return true;
-            return range(0, 5).mapToObj(col -> board[col][row].marked).allMatch(isMarked -> isMarked);
-        });
-    }
-
-    private Optional<Cell[][]> getWinner(final Boards boards) {
-        return boards.boards.stream().filter(this::isAWinner).findFirst();
-    }
-
-    private boolean weHaveAWinner(final Boards boards) {
-        return getWinner(boards).isEmpty();
+    public Integer getSolutionPart2(final List<Integer> randoms, List<Board> boards) { // 13912
+        randoms.forEach(number -> boards.forEach(board -> board.mark(number)));
+        final Board winner = boards.stream().filter(Board::isAWinner).max(Comparator.comparingInt(board -> randoms.indexOf(board.winningNumber))).orElseThrow();
+        return winner.winningNumber * winner.sumOfUnmarked();
     }
 
     public static void main(String[] args) throws IOException {
         final List<Integer> randoms = Files.lines(Path.of("input.txt")).limit(1).map(line -> stream(line.split(","))
                 .mapToInt(Integer::valueOf).boxed().collect(toList())).flatMap(List::stream).collect(toList());
-        final Boards boards = new Boards(stream(Files.lines(Path.of("input.txt"))
+        final List<Board> boards = stream(Files.lines(Path.of("input.txt"))
                 .skip(2).map(line -> line.isBlank() ? "#" : line.trim() + " ").collect(Collectors.joining()).split("#"))
                 .map(boardString -> {
                     final String[] s = boardString.replace("  ", " ").split(" ");
                     final Cell[][] cells = new Cell[5][5];
                     final AtomicInteger i = new AtomicInteger();
                     range(0, 5).forEach(row -> range(0, 5).forEach(col -> cells[row][col] = new Cell(parseInt(s[i.getAndIncrement()]), false)));
-                    return cells;
-                }).collect(toList()));
+                    return new Board(cells);
+                }).collect(toList());
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
-        if (part.equals("part2"))
+        if (part.equals("part1"))
             System.out.println(new App().getSolutionPart2(randoms, boards));
         else
             System.out.println(new App().getSolutionPart1(randoms, boards));
