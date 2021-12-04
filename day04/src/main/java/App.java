@@ -21,7 +21,7 @@ public class App {
         }
     }
 
-    public static class Board {
+    private static class Board {
         final Cell[][] cells;
         int winningNumber = -1;
 
