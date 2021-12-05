@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.max;
@@ -16,18 +14,13 @@ import static java.util.stream.IntStream.rangeClosed;
 public class App {
     private record Coordinate(int x, int y) {}
     private record Line(Coordinate from, Coordinate to) {}
-    private record Diagram(int[][] map, Lock lock) {
+    private record Diagram(int[][] map) {
         void mark(final Coordinate coordinate) {
-            lock.lock();
-            try {
-                map[coordinate.x][coordinate.y]++;
-            } finally {
-                lock.unlock();
-            }
+            map[coordinate.x][coordinate.y]++;
         }
 
         int coordinatesWithOverlap() {
-            return stream(map).parallel().mapToInt(x -> stream(x).map(i -> i > 1 ? 1 : 0).sum()).sum();
+            return stream(map).mapToInt(x -> stream(x).map(i -> i > 1 ? 1 : 0).sum()).sum();
         }
     }
 
@@ -43,7 +36,7 @@ public class App {
     }
 
     private void markDiagonalLines(final Diagram diagram, final List<Line> lines) {
-        lines.parallelStream().filter(line -> line.from.x != line.to.x && line.from.y != line.to.y).forEach(line -> {
+        lines.stream().filter(line -> line.from.x != line.to.x && line.from.y != line.to.y).forEach(line -> {
             final Coordinate start = findStart(line), end = findEnd(line);
             if(start.y < end.y)
                 for(int x = start.x, y = start.y; x <= end.x && y <= end.y; x++, y++)
@@ -55,7 +48,7 @@ public class App {
     }
 
     private void markStraightLines(final Diagram diagram, final List<Line> lines) {
-        lines.parallelStream().filter(line -> line.from.x == line.to.x || line.from.y == line.to.y).forEach(line -> {
+        lines.stream().filter(line -> line.from.x == line.to.x || line.from.y == line.to.y).forEach(line -> {
             final Coordinate start = findStart(line), end = findEnd(line);
             if(start.x < end.x)
                 rangeClosed(start.x, end.x).forEach(x -> diagram.mark(new Coordinate(x, start.y)));
@@ -76,23 +69,18 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException {
-        final int[] boundaries = new int[2]; final Lock lock = new ReentrantLock();
-        final List<Line> lines = Files.lines(Path.of("input.txt")).parallel().map(line -> {
+        final int[] boundaries = new int[2];
+        final List<Line> lines = Files.lines(Path.of("input.txt")).map(line -> {
             final List<Coordinate> coordinates = stream(line.split(" -> ")).map(coordinateString -> {
                 final String[] split = coordinateString.split(",");
                 int x = parseInt(split[0]); int y = parseInt(split[1]);
-                lock.lock();
-                try {
-                    boundaries[0] = max(x, boundaries[0]); boundaries[1] = max(y, boundaries[1]);
-                } finally {
-                    lock.unlock();
-                }
+                boundaries[0] = max(x, boundaries[0]); boundaries[1] = max(y, boundaries[1]);
                 return new Coordinate(x, y);
             }).collect(toList());
             return new Line(coordinates.get(0), coordinates.get(1));
         }).collect(toList());
 
-        final Diagram diagram = new Diagram(new int[boundaries[0] + 1][boundaries[1] + 1], new ReentrantLock());
+        final Diagram diagram = new Diagram(new int[boundaries[0] + 1][boundaries[1] + 1]);
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
         if (part.equals("part2"))
             System.out.println(new App().getSolutionPart2(diagram, lines));
