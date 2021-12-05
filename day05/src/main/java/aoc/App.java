@@ -20,7 +20,7 @@ public class App {
         }
 
         int coordinatesWithOverlap() {
-            return stream(map).mapToInt(x -> stream(x).map(i -> i > 1 ? 1 : 0).sum()).sum();
+            return stream(map).parallel().mapToInt(x -> stream(x).map(i -> i > 1 ? 1 : 0).sum()).sum();
         }
     }
 
@@ -36,7 +36,7 @@ public class App {
     }
 
     private void markDiagonalLines(final Diagram diagram, final List<Line> lines) {
-        lines.stream().filter(line -> line.from.x != line.to.x && line.from.y != line.to.y).forEach(line -> {
+        lines.parallelStream().filter(line -> line.from.x != line.to.x && line.from.y != line.to.y).forEach(line -> {
             final Coordinate start = findStart(line), end = findEnd(line);
             if(start.y < end.y)
                 for(int x = start.x, y = start.y; x <= end.x && y <= end.y; x++, y++)
@@ -48,7 +48,7 @@ public class App {
     }
 
     private void markStraightLines(final Diagram diagram, final List<Line> lines) {
-        lines.stream().filter(line -> line.from.x == line.to.x || line.from.y == line.to.y).forEach(line -> {
+        lines.parallelStream().filter(line -> line.from.x == line.to.x || line.from.y == line.to.y).forEach(line -> {
             final Coordinate start = findStart(line), end = findEnd(line);
             if(start.x < end.x)
                 rangeClosed(start.x, end.x).forEach(x -> diagram.mark(new Coordinate(x, start.y)));
@@ -70,7 +70,7 @@ public class App {
 
     public static void main(String[] args) throws IOException {
         final int[] boundaries = new int[2];
-        final List<Line> lines = Files.lines(Path.of("input.txt")).map(line -> {
+        final List<Line> lines = Files.lines(Path.of("input.txt")).parallel().map(line -> {
             final List<Coordinate> coordinates = stream(line.split(" -> ")).map(coordinateString -> {
                 final String[] split = coordinateString.split(",");
                 int x = parseInt(split[0]); int y = parseInt(split[1]);
