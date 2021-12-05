@@ -3,13 +3,12 @@ package aoc;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
+import static java.lang.Math.max;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
@@ -94,25 +93,20 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException {
+        final int[] boundaries = new int[2];
         final List<Line> lines = Files.lines(Path.of("input.txt")).map(line -> {
             final List<Position> positions = stream(line.split(" -> ")).map(coordinateString -> {
                 final String[] split = coordinateString.split(",");
-                return new Position(parseInt(split[0]), parseInt(split[1]));
+                int x = parseInt(split[0]); int y = parseInt(split[1]);
+                boundaries[0] = max(x, boundaries[0]); boundaries[1] = max(y, boundaries[1]);
+                return new Position(x, y);
             }).collect(toList());
             return new Line(positions.get(0), positions.get(1));
         }).collect(toList());
 
-        final Integer maxX = Stream.of(lines.stream().max(Comparator.comparingInt(line -> line.from.x)).orElseThrow().from.x,
-                        lines.stream().max(Comparator.comparingInt(line -> line.to.x)).orElseThrow().to.x)
-                .max(Comparator.naturalOrder()).orElseThrow();
-        final Integer maxY = Stream.of(lines.stream().max(Comparator.comparingInt(line -> line.from.y)).orElseThrow().from.y,
-                        lines.stream().max(Comparator.comparingInt(line -> line.to.y)).orElseThrow().to.y)
-                .max(Comparator.naturalOrder()).orElseThrow();
-
-        final Diagram diagram = new Diagram(new int[maxX + 1][maxY + 1]);
-
+        final Diagram diagram = new Diagram(new int[boundaries[0] + 1][boundaries[1] + 1]);
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
-        if (part.equals("part2"))
+        if (part.equals("part1"))
             System.out.println(new App().getSolutionPart2(diagram, lines));
         else
             System.out.println(new App().getSolutionPart1(diagram, lines));
