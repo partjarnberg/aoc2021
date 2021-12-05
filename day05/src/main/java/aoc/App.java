@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
@@ -17,38 +19,25 @@ public class App {
     private record Position(int x, int y) {}
     private record Line(Position from, Position to) {}
 
-    private static class Point {
-        int number;
-        Point() {
-            this.number = 0;
-        }
-
-        private void increase() {
-            number++;
-        }
-    }
-
     private static class Diagram {
-        final Point[][] points;
+        final int[][] points;
 
-        Diagram(final Point[][] points) {
+        Diagram(final int[][] points) {
             this.points = points;
-            range(0, this.points.length).forEach(x -> range(0, this.points[x].length).forEach(y -> this.points[x][y] = new Point()));
+            range(0, this.points.length).forEach(x -> range(0, this.points[x].length).forEach(y -> this.points[x][y] = 0));
         }
 
         void mark(final Position position) {
-            points[position.x][position.y].increase();
+            points[position.x][position.y]++;
         }
 
         int pointsWithLinesOverlap() {
-            int counter = 0;
-            for (Point[] row : points) {
-                for (Point point : row) {
-                    if(point.number > 1)
-                        counter++;
-                }
-            }
-            return counter;
+            final AtomicInteger counter = new AtomicInteger();
+            IntStream.range(0, points.length).forEach(x -> IntStream.range(0, points[x].length).forEach(y -> {
+                if(points[x][y] > 1)
+                    counter.getAndIncrement();
+            }));
+            return counter.get();
         }
     }
 
@@ -120,7 +109,7 @@ public class App {
                         lines.stream().max(Comparator.comparingInt(line -> line.to.y)).orElseThrow().to.y)
                 .max(Comparator.naturalOrder()).orElseThrow();
 
-        final Diagram diagram = new Diagram(new Point[maxX + 1][maxY + 1]);
+        final Diagram diagram = new Diagram(new int[maxX + 1][maxY + 1]);
 
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
         if (part.equals("part2"))
