@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.max;
@@ -14,9 +16,14 @@ import static java.util.stream.IntStream.rangeClosed;
 public class App {
     private record Coordinate(int x, int y) {}
     private record Line(Coordinate from, Coordinate to) {}
-    private record Diagram(int[][] map) {
+    private record Diagram(int[][] map, Lock lock) {
         void mark(final Coordinate coordinate) {
-            map[coordinate.x][coordinate.y]++;
+            lock.lock();
+            try {
+                map[coordinate.x][coordinate.y]++;
+            } finally {
+                lock.unlock();
+            }
         }
 
         int coordinatesWithOverlap() {
@@ -69,18 +76,23 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException {
-        final int[] boundaries = new int[2];
+        final int[] boundaries = new int[2]; final Lock lock = new ReentrantLock();
         final List<Line> lines = Files.lines(Path.of("input.txt")).parallel().map(line -> {
             final List<Coordinate> coordinates = stream(line.split(" -> ")).map(coordinateString -> {
                 final String[] split = coordinateString.split(",");
                 int x = parseInt(split[0]); int y = parseInt(split[1]);
-                boundaries[0] = max(x, boundaries[0]); boundaries[1] = max(y, boundaries[1]);
+                lock.lock();
+                try {
+                    boundaries[0] = max(x, boundaries[0]); boundaries[1] = max(y, boundaries[1]);
+                } finally {
+                    lock.unlock();
+                }
                 return new Coordinate(x, y);
             }).collect(toList());
             return new Line(coordinates.get(0), coordinates.get(1));
         }).collect(toList());
 
-        final Diagram diagram = new Diagram(new int[boundaries[0] + 1][boundaries[1] + 1]);
+        final Diagram diagram = new Diagram(new int[boundaries[0] + 1][boundaries[1] + 1], new ReentrantLock());
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
         if (part.equals("part2"))
             System.out.println(new App().getSolutionPart2(diagram, lines));
