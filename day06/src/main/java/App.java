@@ -7,9 +7,9 @@ import static java.util.stream.IntStream.rangeClosed;
 public class App {
     public long simulate(final long[] lanternFishTimers, final int numberOfDays) {
         rangeClosed(1, numberOfDays).forEach(day -> {
-            var spawn = lanternFishTimers[0];
+            var spawn = lanternFishTimers[0]; var newParents = lanternFishTimers[0];
             rangeClosed(0, 7).forEach(timer -> lanternFishTimers[timer] = lanternFishTimers[timer + 1]);
-            lanternFishTimers[6] += spawn; lanternFishTimers[8] = spawn;
+            lanternFishTimers[8] = spawn; lanternFishTimers[6] += newParents;
         });
         return stream(lanternFishTimers).sum();
     }
