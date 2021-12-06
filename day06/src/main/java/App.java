@@ -1,4 +1,3 @@
-package aoc;
 import java.io.IOException; import java.nio.file.*; import java.util.*; import java.util.stream.*;
 
 public class App {
