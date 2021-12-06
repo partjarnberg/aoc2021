@@ -10,7 +10,7 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException {
-        final List<Long> lanternfishLifecycle = new ArrayList<>(Arrays.stream(new long[9]).boxed().toList());
+        final List<Long> lanternfishLifecycle = Arrays.asList(0L,0L,0L,0L,0L,0L,0L,0L,0L);
         Arrays.stream(Files.readString(Path.of("input.txt")).split(",")).map(Integer::parseInt).forEach(stage -> lanternfishLifecycle.set(stage, lanternfishLifecycle.get(stage) + 1 ));
         System.out.println(new App().simulate(lanternfishLifecycle, (System.getenv("part") == null ? "part1" : System.getenv("part")).equalsIgnoreCase("part1") ? 80 : 256));
     }
