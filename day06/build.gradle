@@ -21,13 +21,13 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'aoc.App'
+    mainClass = 'App'
 }
 
 jar {
     manifest {
         attributes(
-                'Main-Class': 'aoc.App'
+                'Main-Class': 'App'
         )
     }
 }
