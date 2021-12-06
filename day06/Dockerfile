@@ -1,6 +1,6 @@
 FROM gradle:jdk17-alpine as BASE
 WORKDIR /src
-COPY src .
+COPY ./ .
 RUN gradle build
 
 FROM openjdk:17-alpine
