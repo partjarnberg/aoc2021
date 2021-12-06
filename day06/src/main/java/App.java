@@ -1,64 +1,26 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
-import static java.lang.System.arraycopy;
 import static java.util.Arrays.stream;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
+import static java.util.stream.IntStream.rangeClosed;
 
 public class App {
-    private static class LanternFish {
-        static final int INITIAL_TIMER = 6, FIRST_INTIAL_TIMER = 8;
-        int timer;
-        LanternFish(final int timer) {
-            this.timer = timer;
-        }
-
-        Optional<LanternFish> trySpawn() {
-            if(--timer < 0) {
-                timer = INITIAL_TIMER;
-                return of(new LanternFish(FIRST_INTIAL_TIMER));
-            }
-            return empty();
-        }
-    }
-
-    public Integer getSolutionPart1(final List<LanternFish> lanternFishes) { // 350149
-        range(0, 80).forEach(day -> lanternFishes.addAll(lanternFishes.stream().map(LanternFish::trySpawn).filter(Optional::isPresent).map(Optional::get).collect(toList())));
-        return lanternFishes.size();
-    }
-
-    public long getSolutionPart2(final List<LanternFish> lanternFishes) { // 1590327954513
-        var ref = new Object() {
-            long[] fishTimers = new long[9];
-        };
-        lanternFishes.forEach(fish -> ref.fishTimers[fish.timer]++);
-        range(0, 256).forEach(day -> {
-            var kids = ref.fishTimers[0];
-            var resetFishes = ref.fishTimers[0];
-            var temp = new long[ref.fishTimers.length];
-            arraycopy(ref.fishTimers, 1, temp, 0, temp.length - 1);
-            temp[6] += kids;
-            temp[8] += resetFishes;
-            ref.fishTimers = temp;
+    public long simulate(final long[] fishTimers, final int numberOfDays) {
+        range(0, numberOfDays).forEach(day -> {
+            var spawn = fishTimers[0];
+            rangeClosed(0, 7).forEach(timer -> fishTimers[timer] = fishTimers[timer + 1]);
+            fishTimers[6] += spawn;
+            fishTimers[8] = spawn;
         });
-
-        return stream(ref.fishTimers).sum();
+        return stream(fishTimers).sum();
     }
 
     public static void main(String[] args) throws IOException {
-        final List<LanternFish> lanternFishes = new ArrayList<>(stream(Files.readString(Path.of("input.txt")).split(","))
-                .map(timerString -> new LanternFish(Integer.parseInt(timerString))).toList());
+        final long[] fishTimers = new long[9];
+        stream(Files.readString(Path.of("input.txt")).split(",")).map(Integer::parseInt).forEach(timer -> fishTimers[timer]++);
         final String part = System.getenv("part") == null ? "part1" : System.getenv("part");
-        if (part.equals("part1"))
-            System.out.println(new App().getSolutionPart2(lanternFishes));
-        else
-            System.out.println(new App().getSolutionPart1(lanternFishes));
+        System.out.println(new App().simulate(fishTimers, part.equalsIgnoreCase("part1") ? 80 : 256));
     }
 }
