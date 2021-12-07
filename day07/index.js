@@ -15,11 +15,8 @@ function getSolutionPart1() { // 329389
 
 function costToAlignWithVariableRate(goal, positions) {
     return  positions.map(position => {
-        let num = 0;
-        for (let i = Math.abs(position - goal); i > 0; i--) {
-            num = num + i;
-        }
-        return num;
+        let distance = Math.abs(position - goal);
+        return distance * (1 +  distance) / 2;
     }).reduce((a, b) => a + b, 0);
 }
 
@@ -28,7 +25,7 @@ function getSolutionPart2() { // 86397080
     return Math.min(...[...Array(Math.max(...positions) + 1).keys()].map(goal => costToAlignWithVariableRate(goal, positions)));
 }
 
-const part = process.env.part || "part1"
+const part = process.env.part || "part2"
 
 if (part === "part1")
     console.log(getSolutionPart1())
