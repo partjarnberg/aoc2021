@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,9 +9,8 @@ import static java.lang.Integer.parseInt;
 import static java.lang.System.getenv;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static java.util.Map.entry;
-import static java.util.stream.Collectors.*;
-import static java.util.stream.IntStream.rangeClosed;
+import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.concat;
 
 public class App {
@@ -21,7 +21,7 @@ public class App {
 
         Display(final Signal signal) {
             this.signal = signal;
-            final Map<Integer, String> dictionary = rangeClosed(0, 9).mapToObj(key -> entry(key, "")).collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+            final Map<Integer, String> dictionary = new HashMap<>();
             do {
                 signal.signalPatterns.forEach(signalPattern -> {
                     switch (signalPattern.length()) {
@@ -48,12 +48,12 @@ public class App {
                         default -> throw new IllegalStateException();
                     }
                 });
-            } while(dictionary.values().stream().filter(value -> !value.isBlank()).count() < dictionary.size());
+            } while(dictionary.values().stream().filter(value -> !value.isBlank()).count() < 10);
             digits = calculate(signal.outputs, dictionary);
         }
 
         private boolean signalIsValidFor(final String signal, final String pattern, final int matchingLength) {
-            return !pattern.isBlank() && xor(pattern, signal).length() == matchingLength;
+            return nonNull(pattern) && xor(pattern, signal).length() == matchingLength;
         }
 
         private int calculate(final List<String> output, final Map<Integer, String> dictionary) {
