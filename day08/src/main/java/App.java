@@ -9,8 +9,7 @@ import static java.lang.System.getenv;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Map.entry;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 import static java.util.stream.IntStream.rangeClosed;
 import static java.util.stream.Stream.concat;
 
@@ -58,14 +57,11 @@ public class App {
         }
 
         private int calculate(final List<String> output, final Map<Integer, String> dictionary) {
-            return parseInt(output.stream().map(digit -> "" + dictionary.entrySet().stream()
-                            .filter(entry -> xor(entry.getValue(), digit).length() == 0).findFirst().orElseThrow().getKey())
-                    .collect(joining()));
+            return parseInt(output.stream().map(digit -> "" + dictionary.entrySet().stream().filter(entry -> xor(entry.getValue(), digit).length() == 0).findFirst().orElseThrow().getKey()).collect(joining()));
         }
 
         private String xor(final String first, final String second){
-            return concat(stream(first.split("")).filter(c -> !second.contains(c)),
-                    stream(second.split("")).filter(c -> !first.contains(c))).collect(joining());
+            return concat(stream(first.split("")).filter(c -> !second.contains(c)), stream(second.split("")).filter(c -> !first.contains(c))).collect(joining());
         }
     }
 
