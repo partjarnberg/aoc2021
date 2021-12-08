@@ -14,45 +14,45 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.concat;
 
 public class App {
-    record Signal(List<String> signalPatterns, List<String> outputs) {}
+    record Signal(List<String> segmentPatterns, List<String> outputs) {}
     private static class Display {
         final int digits;
         final Signal signal;
 
         Display(final Signal signal) {
             this.signal = signal;
-            final Map<Integer, String> dictionary = new HashMap<>();
+            final Map<Integer, String> segments = new HashMap<>();
             do {
-                signal.signalPatterns.forEach(signalPattern -> {
-                    switch (signalPattern.length()) {
-                        case 2 -> dictionary.put(1, signalPattern);
-                        case 3 -> dictionary.put(7, signalPattern);
-                        case 4 -> dictionary.put(4, signalPattern);
+                signal.segmentPatterns.forEach(pattern -> {
+                    switch (pattern.length()) {
+                        case 2 -> segments.put(1, pattern);
+                        case 3 -> segments.put(7, pattern);
+                        case 4 -> segments.put(4, pattern);
                         case 5 -> { // 2, 3, 5
-                            if(signalIsValidFor(signalPattern, dictionary.get(1), 3))
-                                dictionary.put(3, signalPattern);
-                            else if(signalIsValidFor(signalPattern, dictionary.get(6), 1))
-                                dictionary.put(5, signalPattern);
-                            else if(signalIsValidFor(signalPattern, dictionary.get(3), 2))
-                                dictionary.put(2, signalPattern);
+                            if(signalMatches(pattern, segments.get(1), 3))
+                                segments.put(3, pattern);
+                            else if(signalMatches(pattern, segments.get(6), 1))
+                                segments.put(5, pattern);
+                            else if(signalMatches(pattern, segments.get(3), 2))
+                                segments.put(2, pattern);
                         }
                         case 6 -> { // 0, 6, 9
-                            if(signalIsValidFor(signalPattern, dictionary.get(3), 1))
-                                dictionary.put(9, signalPattern);
-                            else if(signalIsValidFor(signalPattern, dictionary.get(7), 5))
-                                dictionary.put(6, signalPattern);
-                            else if(signalIsValidFor(signalPattern, dictionary.get(2), 3))
-                                dictionary.put(0, signalPattern);
+                            if(signalMatches(pattern, segments.get(3), 1))
+                                segments.put(9, pattern);
+                            else if(signalMatches(pattern, segments.get(7), 5))
+                                segments.put(6, pattern);
+                            else if(signalMatches(pattern, segments.get(2), 3))
+                                segments.put(0, pattern);
                         }
-                        case 7 -> dictionary.put(8, signalPattern);
+                        case 7 -> segments.put(8, pattern);
                         default -> throw new IllegalStateException();
                     }
                 });
-            } while(dictionary.values().stream().filter(value -> !value.isBlank()).count() < 10);
-            digits = calculate(signal.outputs, dictionary);
+            } while(segments.values().stream().filter(value -> !value.isBlank()).count() < 10);
+            digits = calculate(signal.outputs, segments);
         }
 
-        private boolean signalIsValidFor(final String signal, final String pattern, final int matchingLength) {
+        private boolean signalMatches(final String signal, final String pattern, final int matchingLength) {
             return nonNull(pattern) && xor(pattern, signal).length() == matchingLength;
         }
 
