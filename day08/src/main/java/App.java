@@ -1,9 +1,9 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.System.getenv;
@@ -21,34 +21,34 @@ public class App {
 
         Display(final Signal signal) {
             this.signal = signal;
-            final Map<Integer, String> segments = new HashMap<>();
+            final String[] segments = new String[10];
             do {
                 signal.segmentPatterns.forEach(pattern -> {
                     switch (pattern.length()) {
-                        case 2 -> segments.put(1, pattern);
-                        case 3 -> segments.put(7, pattern);
-                        case 4 -> segments.put(4, pattern);
+                        case 2 -> segments[1] = pattern;
+                        case 3 -> segments[7] = pattern;
+                        case 4 -> segments[4] = pattern;
                         case 5 -> { // 2, 3, 5
-                            if(signalMatches(pattern, segments.get(1), 3))
-                                segments.put(3, pattern);
-                            else if(signalMatches(pattern, segments.get(6), 1))
-                                segments.put(5, pattern);
-                            else if(signalMatches(pattern, segments.get(3), 2))
-                                segments.put(2, pattern);
+                            if(signalMatches(pattern, segments[1], 3))
+                                segments[3] = pattern;
+                            else if(signalMatches(pattern, segments[6], 1))
+                                segments[5] = pattern;
+                            else if(signalMatches(pattern, segments[3], 2))
+                                segments[2] = pattern;
                         }
                         case 6 -> { // 0, 6, 9
-                            if(signalMatches(pattern, segments.get(3), 1))
-                                segments.put(9, pattern);
-                            else if(signalMatches(pattern, segments.get(7), 5))
-                                segments.put(6, pattern);
-                            else if(signalMatches(pattern, segments.get(2), 3))
-                                segments.put(0, pattern);
+                            if(signalMatches(pattern, segments[3], 1))
+                                segments[9] = pattern;
+                            else if(signalMatches(pattern, segments[7], 5))
+                                segments[6] = pattern;
+                            else if(signalMatches(pattern, segments[2], 3))
+                                segments[0] = pattern;
                         }
-                        case 7 -> segments.put(8, pattern);
+                        case 7 -> segments[8] = pattern;
                         default -> throw new IllegalStateException();
                     }
                 });
-            } while(segments.values().stream().filter(value -> !value.isBlank()).count() < 10);
+            } while(stream(segments).filter(Objects::nonNull).count() < segments.length);
             digits = calculate(signal.outputs, segments);
         }
 
@@ -56,8 +56,8 @@ public class App {
             return nonNull(pattern) && xor(pattern, signal).length() == matchingLength;
         }
 
-        private int calculate(final List<String> output, final Map<Integer, String> dictionary) {
-            return parseInt(output.stream().map(digit -> "" + dictionary.entrySet().stream().filter(entry -> xor(entry.getValue(), digit).length() == 0).findFirst().orElseThrow().getKey()).collect(joining()));
+        private int calculate(final List<String> output, final String[] segments) {
+            return parseInt(output.stream().map(digit -> "" + IntStream.rangeClosed(0, 9).filter(index -> xor(digit, segments[index]).isEmpty()).findFirst().orElseThrow()).collect(joining()));
         }
 
         private String xor(final String first, final String second){
@@ -78,7 +78,7 @@ public class App {
             final String[] split = line.split(" \\| ");
             return new Display(new Signal(asList(split[0].split(" ")), asList(split[1].split(" "))));
         }).toList();
-        final String part = getenv("part") == null ? "part1" : getenv("part");
+        final String part = getenv("part") == null ? "part2" : getenv("part");
         System.out.println(part.equalsIgnoreCase("part1") ? new App().solvePart1(displays) : new App().solvePart2(displays));
     }
 }
