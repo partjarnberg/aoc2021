@@ -49,6 +49,6 @@ public class App {
 
     public static void main(String[] args) throws IOException {
         final List<List<Integer>> heightMap = Files.lines(Path.of("input.txt")).map(line -> stream(line.split("")).mapToInt(Integer::parseInt).boxed().toList()).toList();
-        System.out.println((getenv("part") == null ? "part2" : getenv("part")).equalsIgnoreCase("part1") ? new App().solvePart1(heightMap) : new App().solvePart2(heightMap));
+        System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ? new App().solvePart1(heightMap) : new App().solvePart2(heightMap));
     }
 }
