@@ -39,18 +39,16 @@ public class App {
     private int sizeOfBasin(final List<List<Integer>> heightMap, final List<Point> visited, final int y, final int x) {
         if(visited.contains(new Point(x, y)) || heightMap.get(y).get(x) == 9)
             return 0;
-        int size = 1;
         visited.add(new Point(x, y));
-        if(x > 0) size += sizeOfBasin(heightMap, visited, y, x - 1);
-        if(x < heightMap.get(0).size() - 1) size += sizeOfBasin(heightMap, visited, y, x + 1);
-        if(y > 0) size += sizeOfBasin(heightMap, visited, y - 1, x);
-        if(y < heightMap.size() - 1) size += sizeOfBasin(heightMap, visited, y + 1, x);
-        return size;
+        if(x > 0) sizeOfBasin(heightMap, visited, y, x - 1);
+        if(x < heightMap.get(0).size() - 1) sizeOfBasin(heightMap, visited, y, x + 1);
+        if(y > 0) sizeOfBasin(heightMap, visited, y - 1, x);
+        if(y < heightMap.size() - 1) sizeOfBasin(heightMap, visited, y + 1, x);
+        return visited.size();
     }
 
     public static void main(String[] args) throws IOException {
         final List<List<Integer>> heightMap = Files.lines(Path.of("input.txt")).map(line -> stream(line.split("")).mapToInt(Integer::parseInt).boxed().toList()).toList();
-        final String part = getenv("part") == null ? "part2" : getenv("part");
-        System.out.println(part.equalsIgnoreCase("part1") ? new App().solvePart1(heightMap) : new App().solvePart2(heightMap));
+        System.out.println((getenv("part") == null ? "part2" : getenv("part")).equalsIgnoreCase("part1") ? new App().solvePart1(heightMap) : new App().solvePart2(heightMap));
     }
 }
