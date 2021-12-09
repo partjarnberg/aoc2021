@@ -20,19 +20,19 @@ public class App {
 
     public long solvePart1(final List<List<Integer>> heightMap) {
         return range(0, heightMap.size()).mapToObj(y -> range(0, heightMap.get(0).size()).filter(x ->
-                calculateDirections(heightMap, y, x).isALowPoint()).mapToLong(x -> heightMap.get(y).get(x) + 1))
+                calculateDirectionsFor(heightMap, y, x).isALowPoint()).mapToLong(x -> heightMap.get(y).get(x) + 1))
                 .flatMapToLong(longStream -> longStream).sum();
     }
 
     public long solvePart2(final List<List<Integer>> heightMap) { // 1059300
         final List<Long> longs = range(0, heightMap.size()).mapToObj(y -> range(0, heightMap.get(0).size()).filter(x ->
-                calculateDirections(heightMap, y, x).isALowPoint())
+                calculateDirectionsFor(heightMap, y, x).isALowPoint())
                 .mapToLong(x -> sizeOfBasin(heightMap, new ArrayList<>(), y, x)))
                 .flatMapToLong(longStream -> longStream).boxed().sorted(reverseOrder()).toList();
         return longs.get(0) * longs.get(1) * longs.get(2);
     }
 
-    private Directions calculateDirections(final List<List<Integer>> heightMap, final int y, final int x) {
+    private Directions calculateDirectionsFor(final List<List<Integer>> heightMap, final int y, final int x) {
         int left = x - 1 >= 0 ? heightMap.get(y).get(x - 1) : Integer.MAX_VALUE;
         int right = x + 1 < heightMap.get(0).size() ? heightMap.get(y).get(x + 1) : Integer.MAX_VALUE;
         int up = y - 1 >= 0 ? heightMap.get(y - 1).get(x) : Integer.MAX_VALUE;
