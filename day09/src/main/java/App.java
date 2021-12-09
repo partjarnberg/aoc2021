@@ -18,18 +18,14 @@ public class App {
         }
     }
 
-    public long solvePart1(final List<List<Integer>> heightMap) {
-        return range(0, heightMap.size()).mapToObj(y -> range(0, heightMap.get(0).size()).filter(x ->
-                calculateDirectionsFor(heightMap, y, x).isALowPoint()).mapToLong(x -> heightMap.get(y).get(x) + 1))
-                .flatMapToLong(longStream -> longStream).sum();
+    public long solvePart1(final List<List<Integer>> heightMap) { // 486
+        return range(0, heightMap.size()).mapToObj(y -> range(0, heightMap.get(0).size()).filter(x -> calculateDirectionsFor(heightMap, y, x).isALowPoint())
+                        .mapToLong(x -> heightMap.get(y).get(x) + 1)).flatMapToLong(longStream -> longStream).sum();
     }
 
     public long solvePart2(final List<List<Integer>> heightMap) { // 1059300
-        final List<Long> longs = range(0, heightMap.size()).mapToObj(y -> range(0, heightMap.get(0).size()).filter(x ->
-                calculateDirectionsFor(heightMap, y, x).isALowPoint())
-                .mapToLong(x -> sizeOfBasin(heightMap, new ArrayList<>(), y, x)))
-                .flatMapToLong(longStream -> longStream).boxed().sorted(reverseOrder()).toList();
-        return longs.get(0) * longs.get(1) * longs.get(2);
+        return range(0, heightMap.get(0).size()).mapToObj(y -> range(0, heightMap.size()).filter(x -> calculateDirectionsFor(heightMap, y, x).isALowPoint())
+                .mapToLong(x -> sizeOfBasin(heightMap, new ArrayList<>(), y, x))).flatMapToLong(longStream -> longStream).boxed().sorted(reverseOrder()).limit(3).reduce((a, b) -> a * b).orElseThrow();
     }
 
     private Directions calculateDirectionsFor(final List<List<Integer>> heightMap, final int y, final int x) {
@@ -53,9 +49,7 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException {
-        final List<List<Integer>> heightMap = Files.lines(Path.of("input.txt")).map(line ->
-                        stream(line.split("")).mapToInt(Integer::parseInt).boxed().toList())
-                .toList();
+        final List<List<Integer>> heightMap = Files.lines(Path.of("input.txt")).map(line -> stream(line.split("")).mapToInt(Integer::parseInt).boxed().toList()).toList();
         final String part = getenv("part") == null ? "part1" : getenv("part");
         System.out.println(part.equalsIgnoreCase("part1") ? new App().solvePart1(heightMap) : new App().solvePart2(heightMap));
     }
