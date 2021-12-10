@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.util.*;
 
 import static java.lang.System.getenv;
-import static java.util.List.of;
 import static java.util.Objects.requireNonNull;
 
 public class App {
