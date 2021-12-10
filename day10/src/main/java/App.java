@@ -35,13 +35,13 @@ public class App {
     }
 
     public long solvePart1(final List<String> lines) { // 296535
-        return lines.stream().map(this::firstIllegalCharacterOf).filter(Optional::isPresent).mapToInt(c -> valueOfIllegalCharacter.get(c.get())).sum();
+        return lines.parallelStream().map(this::firstIllegalCharacterOf).filter(Optional::isPresent).mapToInt(c -> valueOfIllegalCharacter.get(c.get())).sum();
     }
 
     public long solvePart2(final List<String> lines) { // 4245130838
-        final List<String> inComplete = lines.stream().filter(line -> firstIllegalCharacterOf(line).isEmpty()).toList();
-        return inComplete.stream().map(line -> complete(line).stream().mapToLong(valueOfIncompleteCharacter::get).reduce((a, b) -> 5 * a + b).orElseThrow())
-                .sorted().skip(inComplete.size() / 2).findFirst().orElseThrow();
+        final List<Long> incompleteValues = lines.parallelStream().filter(line -> firstIllegalCharacterOf(line).isEmpty()).map(line ->
+                complete(line).stream().mapToLong(valueOfIncompleteCharacter::get).reduce((a, b) -> 5 * a + b).orElseThrow()).sorted().toList();
+        return incompleteValues.stream().skip(incompleteValues.size() / 2).findFirst().orElseThrow();
     }
 
     public static void main(String[] args) throws IOException {
