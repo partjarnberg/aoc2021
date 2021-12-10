@@ -14,7 +14,7 @@ public class App {
     final Map<Character, Character> closingCharacterFor = Map.of('(', ')', '[', ']', '{', '}', '<', '>');
 
     boolean isAnOpeningCharacter(final Character character) {
-        return of('(', '[', '{', '<').contains(character);
+        return closingCharacterFor.containsKey(character);
     }
 
     Optional<Character> firstIllegalCharacterOf(final String line) {
