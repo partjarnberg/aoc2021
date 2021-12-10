@@ -9,45 +9,19 @@ import static java.util.Objects.requireNonNull;
 
 public class App {
 
+    final Map<Character, Integer> valueOfIllegalCharacter = Map.of(')', 3, ']', 57, '}', 1197, '>', 25137);
+    final Map<Character, Integer> valueOfIncompleteCharacter = Map.of(')', 1, ']', 2, '}', 3, '>', 4);
+    final Map<Character, Character> closingCharacterFor = Map.of('(', ')', '[', ']', '{', '}', '<', '>');
+
     boolean isAnOpeningCharacter(final Character character) {
         return of('(', '[', '{', '<').contains(character);
     }
 
-    int valueOfIllegalCharacter(final Character closing) {
-        switch (closing) {
-            case ')' -> { return 3; }
-            case ']' -> { return 57; }
-            case '}' -> { return 1197; }
-            case '>' -> { return 25137; }
-            default -> throw new IllegalStateException();
-        }
-    }
-
-    int valueOfIncompleteCharacter(final Character closing) {
-        switch (closing) {
-            case ')' -> { return 1; }
-            case ']' -> { return 2; }
-            case '}' -> { return 3; }
-            case '>' -> { return 4; }
-            default -> throw new IllegalStateException();
-        }
-    }
-
-    Character closingCharacterFor(final Character opening) {
-        switch (opening) {
-            case '(' -> { return ')'; }
-            case '[' -> { return ']'; }
-            case '{' -> { return '}'; }
-            case '<' -> { return '>'; }
-            default -> throw new IllegalStateException();
-        }
-    }
-
-    Optional<Character> firstIllegalCharacter(final String line) {
+    Optional<Character> firstIllegalCharacterOf(final String line) {
         final Deque<Character> stack = new ArrayDeque<>();
         return line.chars().mapToObj(c -> (char) c).map(c -> {
             if (isAnOpeningCharacter(c)) stack.push(c);
-            else if (!closingCharacterFor(stack.pop()).equals(c)) return c;
+            else if (!closingCharacterFor.get(stack.pop()).equals(c)) return c;
             return null;
         }).filter(Objects::nonNull).findFirst();
     }
@@ -56,18 +30,18 @@ public class App {
         final Deque<Character> stack = new ArrayDeque<>();
         line.chars().mapToObj(c -> (char) c).forEach(c -> {
             if (isAnOpeningCharacter(c)) stack.push(c);
-            else if(closingCharacterFor(requireNonNull(stack.peek())).equals(c)) stack.pop();
+            else if(closingCharacterFor.get(requireNonNull(stack.peek())).equals(c)) stack.pop();
         });
-        return stack.stream().map(this::closingCharacterFor).toList();
+        return stack.stream().map(closingCharacterFor::get).toList();
     }
 
     public long solvePart1(final List<String> lines) { // 296535
-        return lines.stream().map(this::firstIllegalCharacter).filter(Optional::isPresent).mapToInt(c -> valueOfIllegalCharacter(c.get())).sum();
+        return lines.stream().map(this::firstIllegalCharacterOf).filter(Optional::isPresent).mapToInt(c -> valueOfIllegalCharacter.get(c.get())).sum();
     }
 
     public long solvePart2(final List<String> lines) { // 4245130838
-        final List<String> inComplete = lines.stream().filter(line -> firstIllegalCharacter(line).isEmpty()).toList();
-        return inComplete.stream().map(line -> complete(line).stream().mapToLong(this::valueOfIncompleteCharacter).reduce((a, b) -> 5 * a + b).orElseThrow())
+        final List<String> inComplete = lines.stream().filter(line -> firstIllegalCharacterOf(line).isEmpty()).toList();
+        return inComplete.stream().map(line -> complete(line).stream().mapToLong(valueOfIncompleteCharacter::get).reduce((a, b) -> 5 * a + b).orElseThrow())
                 .sorted().skip(inComplete.size() / 2).findFirst().orElseThrow();
     }
 
