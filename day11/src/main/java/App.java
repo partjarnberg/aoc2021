@@ -27,10 +27,6 @@ public class App {
             neighbors.add(octopus);
         }
 
-        void tickAndTryToFlash() {
-            tick(); tryToFlash();
-        }
-
         void tick() {
             energyLevel++;
         }
@@ -38,7 +34,9 @@ public class App {
         void tryToFlash() {
             if(!flashed && energyLevel > FLASHING_THRESHOLD) {
                 flashed = true;
-                neighbors.forEach(Octopus::tickAndTryToFlash);
+                neighbors.forEach(neighbor -> {
+                    neighbor.tick(); neighbor.tryToFlash();
+                });
             }
         }
 
