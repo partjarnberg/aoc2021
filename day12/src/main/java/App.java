@@ -5,8 +5,10 @@ import java.util.*;
 
 import static java.lang.System.getenv;
 import static java.util.List.copyOf;
+import static java.util.List.of;
 
 public class App {
+    enum Strategy {FIRST, SECOND}
     static class Cave {
         enum Size { BIG, SMALL }
 
@@ -25,37 +27,38 @@ public class App {
         }
     }
 
-    List<List<Cave>> visitCaveWithSmallRevisit(final Cave current, final Cave end, final Map<Cave, Integer> visited, final Deque<Cave> path, final List<List<Cave>> paths, final int revisits) {
+    List<List<Cave>> visitCaveWithSmallRevisit(final Cave current, final Cave end, final Map<Cave, Integer> visited, final Deque<Cave> path, final List<List<Cave>> paths, final Strategy strategy) {
         path.addLast(current);
+        if(current.size == Cave.Size.SMALL) visited.put(current, visited.getOrDefault(current, 0) + 1);
+        if(current.equals(end)) paths.add(copyOf(path));
 
-        if(current.size == Cave.Size.SMALL)
-            visited.put(current, visited.getOrDefault(current, 0) + 1);
-
-        if(current.equals(end))
-            paths.add(copyOf(path));
-
-        current.connectedTo.forEach(cave -> {
-            if(!visited.containsKey(cave))
-                visitCaveWithSmallRevisit(cave, end, visited, path, paths, revisits);
-            else if(!List.of("start", "end").contains(cave.name) && !visited.containsValue(revisits))
-                    visitCaveWithSmallRevisit(cave, end, visited, path, paths, revisits);
-        });
-
+        switch (strategy) {
+            case FIRST -> {
+                current.connectedTo.forEach(cave -> {
+                    if(!visited.containsKey(cave)) visitCaveWithSmallRevisit(cave, end, visited, path, paths, strategy);
+                });
+                visited.remove(current);
+            }
+            case SECOND -> {
+                current.connectedTo.forEach(cave -> {
+                    if(!visited.containsKey(cave)) visitCaveWithSmallRevisit(cave, end, visited, path, paths, strategy);
+                    else if(!of("start", "end").contains(cave.name) && !visited.containsValue(2)) visitCaveWithSmallRevisit(cave, end, visited, path, paths, strategy);
+                });
+                if(visited.containsKey(current) && visited.get(current) > 1) visited.put(current, 1);
+                else visited.remove(current);
+            }
+        }
         path.removeLastOccurrence(current);
-        if(visited.containsKey(current) && visited.get(current) == revisits)
-            visited.put(current, 1);
-        else
-            visited.remove(current);
 
         return paths;
     }
 
     public long solvePart1(final Cave start, final Cave end) { // 3856
-        return visitCaveWithSmallRevisit(start, end, new HashMap<>(), new ArrayDeque<>(), new ArrayList<>(), 1).size();
+        return visitCaveWithSmallRevisit(start, end, new HashMap<>(), new ArrayDeque<>(), new ArrayList<>(), Strategy.FIRST).size();
     }
 
     public long solvePart2(final Cave start, final Cave end) { // 116692
-        return visitCaveWithSmallRevisit(start, end, new HashMap<>(), new ArrayDeque<>(), new ArrayList<>(), 2).size();
+        return visitCaveWithSmallRevisit(start, end, new HashMap<>(), new ArrayDeque<>(), new ArrayList<>(), Strategy.SECOND).size();
     }
 
     public static void main(String[] args) throws IOException {
