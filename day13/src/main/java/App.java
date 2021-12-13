@@ -87,7 +87,7 @@ public class App {
     public String solvePart2(final Paper paper, final List<Fold> folds) { // ARHZPCUH
         folds.forEach(paper::fold);
         return '\n' + stream(paper.paperYFirst).map(row -> {
-            String rowString = stream(row).mapToObj(point -> point == 1 ? "#" : ".").collect(joining());
+            String rowString = stream(row).mapToObj(point -> point == 1 ? "#" : " ").collect(joining());
             return rowString + '\n';
         }).collect(joining());
     }
@@ -104,7 +104,7 @@ public class App {
         final int maxX = dots.stream().max(comparingInt(p -> p.x)).orElseThrow().x;
         final int maxY = dots.stream().max(comparingInt(p -> p.y)).orElseThrow().y;
         final Paper paper = new Paper(maxX, maxY, dots);
-        System.out.println((getenv("part") == null ? "part2" : getenv("part")).equalsIgnoreCase("part1") ?
+        System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ?
                 new App().solvePart1(paper, folds) :
                 new App().solvePart2(paper, folds));
     }
