@@ -22,10 +22,7 @@ public class App {
         Paper(final int maxX, final int maxY, final List<Dot> dots) {
             paperXFirst = new int[maxX + 1][maxY + 1];
             paperYFirst = new int[maxY + 1][maxX + 1];
-            dots.forEach(dot -> {
-                paperXFirst[dot.x][dot.y] = 1;
-                paperYFirst[dot.y][dot.x] = 1;
-            });
+            dots.forEach(dot -> { paperXFirst[dot.x][dot.y] = 1; paperYFirst[dot.y][dot.x] = 1; });
         }
 
         void foldLeft(final Fold fold) {
@@ -35,18 +32,11 @@ public class App {
                     rightOf[x - lineX - 1] = copyOfRange(paperXFirst[x], 0, paperYFirst.length));
             int[][] leftOf = new int[lineX][paperYFirst.length];
             range(0, lineX).forEach(x -> leftOf[x] = copyOfRange(paperXFirst[x], 0, paperYFirst.length));
-
-            range(0, rightOf.length).forEach(x ->
-                    range(0, paperYFirst.length).forEach(y ->
-                            leftOf[leftOf.length - 1 - x][y] |= rightOf[x][y]
-                    ));
+            range(0, rightOf.length).forEach(x -> range(0, paperYFirst.length).forEach(y ->
+                    leftOf[leftOf.length - 1 - x][y] |= rightOf[x][y]));
             paperXFirst = leftOf;
             paperYFirst = new int[paperYFirst.length][paperYFirst.length];
-            range(0, paperXFirst.length).forEach(x -> {
-                range(0, paperYFirst.length).forEach(y -> {
-                    paperYFirst[y][x] = paperXFirst[x][y];
-                });
-            });
+            range(0, paperXFirst.length).forEach(x -> range(0, paperYFirst.length).forEach(y -> paperYFirst[y][x] = paperXFirst[x][y]));
         }
 
         void foldUp(final Fold fold) {
@@ -56,18 +46,11 @@ public class App {
                     belowLine[y - lineY - 1] = copyOfRange(paperYFirst[y], 0, paperXFirst.length));
             int[][] aboveLine = new int[lineY][paperXFirst.length];
             range(0, lineY).forEach(y -> aboveLine[y] = copyOfRange(paperYFirst[y], 0, paperXFirst.length));
-
-            range(0, belowLine.length).forEach(y ->
-                    range(0, paperXFirst.length).forEach(x ->
-                            aboveLine[aboveLine.length - 1 - y][x] |= belowLine[y][x]
-            ));
+            range(0, belowLine.length).forEach(y -> range(0, paperXFirst.length).forEach(x ->
+                    aboveLine[aboveLine.length - 1 - y][x] |= belowLine[y][x]));
             paperYFirst = aboveLine;
             paperXFirst = new int[paperXFirst.length][paperYFirst.length];
-            range(0, paperYFirst.length).forEach(y -> {
-                range(0, paperXFirst.length).forEach(x -> {
-                    paperXFirst[x][y] = paperYFirst[y][x];
-                });
-            });
+            range(0, paperYFirst.length).forEach(y -> range(0, paperXFirst.length).forEach(x -> paperXFirst[x][y] = paperYFirst[y][x]));
         }
 
         public void fold(final Fold fold) {
