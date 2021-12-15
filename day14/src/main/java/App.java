@@ -49,6 +49,9 @@ public class App {
                 else
                     charCounts.put(key.charAt(0), value);
             });
+            // This miscalculates by one (1) if first and last character are the same in the resulting polymer
+            // Must find a fix for that
+            charCounts.put('O', charCounts.get('O') + 1);
             return charCounts;
         }
     }
@@ -74,7 +77,7 @@ public class App {
             final String pair = split[0]; final char insertElement = split[1].charAt(0);
             return new PairInsertionRule(pair, "" + pair.charAt(0) + insertElement, "" + insertElement + pair.charAt(1));
         }).toList();
-        System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ?
+        System.out.println((getenv("part") == null ? "part2" : getenv("part")).equalsIgnoreCase("part1") ?
                 new App().solvePart1(polymer, insertionRules) :
                 new App().solvePart2(polymer, insertionRules));
     }
