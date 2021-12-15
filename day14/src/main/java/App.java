@@ -13,7 +13,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
 
 public class App {
-    record PairInsertionRule(String pair, Character insert, String firstNewPair, String secondNewPair) {}
+    record PairInsertionRule(String pair, String firstNewPair, String secondNewPair) {}
 
     static class Polymer {
         final Map<String, Long> polymerTemplate = new HashMap<>();
@@ -50,6 +50,7 @@ public class App {
                 else
                     charCounts.put(key.charAt(0), value);
             });
+            System.out.println();
             return charCounts;
         }
     }
@@ -75,7 +76,7 @@ public class App {
         final List<PairInsertionRule> insertionRules = Files.lines(Path.of("input.txt")).skip(2).map(line -> {
             final String[] split = line.split(" -> ");
             final String pair = split[0]; final Character insertElement = split[1].charAt(0);
-            return new PairInsertionRule(pair, insertElement, "" + pair.charAt(0) + insertElement, "" + insertElement + pair.charAt(1));
+            return new PairInsertionRule(pair, "" + pair.charAt(0) + insertElement, "" + insertElement + pair.charAt(1));
         }).toList();
         System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ?
                 new App().solvePart1(polymer, insertionRules) :
