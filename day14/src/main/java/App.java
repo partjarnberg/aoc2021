@@ -41,7 +41,6 @@ public class App {
             });
         }
 
-
         Map<Character, Long> getOccurances() {
             final Map<Character, Long> charCounts = new HashMap<>();
             polymerTemplate.forEach((key, value) -> {
@@ -50,15 +49,12 @@ public class App {
                 else
                     charCounts.put(key.charAt(0), value);
             });
-            System.out.println();
             return charCounts;
         }
     }
 
     public long solvePart1(final Polymer polymer, final List<PairInsertionRule> insertionRules) { // 2891
         rangeClosed(1, 10).forEach(step -> polymer.applyRules(insertionRules));
-        System.out.println(polymer.getOccurances());
-        System.out.println(polymer.polymerTemplate);
         final Map.Entry<Character, Long> max = polymer.getOccurances().entrySet().stream().max(comparingLong(Map.Entry::getValue)).orElseThrow();
         final Map.Entry<Character, Long> min = polymer.getOccurances().entrySet().stream().min(comparingLong(Map.Entry::getValue)).orElseThrow();
         return max.getValue() - min.getValue();
@@ -75,7 +71,7 @@ public class App {
         final Polymer polymer = new Polymer(Files.lines(Path.of("input.txt")).limit(1).collect(joining()));
         final List<PairInsertionRule> insertionRules = Files.lines(Path.of("input.txt")).skip(2).map(line -> {
             final String[] split = line.split(" -> ");
-            final String pair = split[0]; final Character insertElement = split[1].charAt(0);
+            final String pair = split[0]; final char insertElement = split[1].charAt(0);
             return new PairInsertionRule(pair, "" + pair.charAt(0) + insertElement, "" + insertElement + pair.charAt(1));
         }).toList();
         System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ?
