@@ -26,14 +26,14 @@ public class App {
         }
 
         void applyRules(final List<PairInsertionRule> insertionRules) {
-            final Map<String, Long> newPolymerTemplate = new HashMap<>();
+            final Map<String, Long> polymerInserts = new HashMap<>();
             insertionRules.forEach(rule -> {
                 final long count = polymerTemplate.getOrDefault(rule.pair, 0L);
-                newPolymerTemplate.put(rule.firstNewPair, newPolymerTemplate.getOrDefault(rule.firstNewPair, 0L) + count);
-                newPolymerTemplate.put(rule.secondNewPair, newPolymerTemplate.getOrDefault(rule.secondNewPair, 0L) + count);
-                newPolymerTemplate.put(rule.pair, newPolymerTemplate.getOrDefault(rule.pair, 0L) - count);
+                polymerInserts.put(rule.firstNewPair, polymerInserts.getOrDefault(rule.firstNewPair, 0L) + count);
+                polymerInserts.put(rule.secondNewPair, polymerInserts.getOrDefault(rule.secondNewPair, 0L) + count);
+                polymerInserts.put(rule.pair, polymerInserts.getOrDefault(rule.pair, 0L) - count);
             });
-            newPolymerTemplate.forEach((key, value) -> {
+            polymerInserts.forEach((key, value) -> {
                 long previousValue = ofNullable(polymerTemplate.get(key)).orElse(0L);
                 if(previousValue + value <= 0)
                     polymerTemplate.remove(key);
@@ -45,10 +45,10 @@ public class App {
         Map<Character, Long> getOccurances() {
             final Map<Character, Long> charCounts = new HashMap<>();
             polymerTemplate.forEach((key, value) -> {
-                if(charCounts.containsKey(key.charAt(1)))
-                    charCounts.put(key.charAt(1), charCounts.get(key.charAt(1)) + value);
+                if(charCounts.containsKey(key.charAt(0)))
+                    charCounts.put(key.charAt(0), charCounts.get(key.charAt(0)) + value);
                 else
-                    charCounts.put(key.charAt(1), value);
+                    charCounts.put(key.charAt(0), value);
             });
             return charCounts;
         }
@@ -56,6 +56,8 @@ public class App {
 
     public long solvePart1(final Polymer polymer, final List<PairInsertionRule> insertionRules) { // 2891
         rangeClosed(1, 10).forEach(step -> polymer.applyRules(insertionRules));
+        System.out.println(polymer.getOccurances());
+        System.out.println(polymer.polymerTemplate);
         final Map.Entry<Character, Long> max = polymer.getOccurances().entrySet().stream().max(comparingLong(Map.Entry::getValue)).orElseThrow();
         final Map.Entry<Character, Long> min = polymer.getOccurances().entrySet().stream().min(comparingLong(Map.Entry::getValue)).orElseThrow();
         return max.getValue() - min.getValue();
