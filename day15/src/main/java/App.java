@@ -2,64 +2,53 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Set;
 
 import static java.lang.System.getenv;
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparingInt;
+import static java.util.List.of;
 import static java.util.stream.IntStream.range;
 
 public class App {
     record Position(int x, int y) {}
     static class Node {
         final Position position;
-        final int riskLevel;
+        final int risklevel;
         final HashMap<Node, Integer> neighbors = new HashMap<>();
-        boolean visited = false;
-        int distance = Integer.MAX_VALUE;
+        int accumulatedRisklevels = Integer.MAX_VALUE;
 
         Node(final Position position, final int riskLevel) {
             this.position = position;
-            this.riskLevel = riskLevel;
+            this.risklevel = riskLevel;
         }
 
         void addNeighbor(final Node neighbor) {
-            neighbors.put(neighbor, neighbor.riskLevel);
+            neighbors.put(neighbor, neighbor.risklevel);
         }
     }
 
-    // Finding the minimum distance
-    Node findMinDistance(final List<Node> graph) {
-        var ref = new Object() {
-            int minDistance = Integer.MAX_VALUE;
-            Node minDistanceNode = null;
-        };
-
-        graph.forEach(node -> {
-            if(!node.visited && node.distance < ref.minDistance) {
-                ref.minDistance = node.distance;
-                ref.minDistanceNode = node;
-            }
-        });
-
-        return ref.minDistanceNode;
-    }
-
     int dijkstra(final List<Node> graph, final Node start) {
-        start.distance = 0;
-        IntStream.range(0, graph.size()).forEach(ignore -> {
-            // Update the distance between neighbouring vertex and source vertex
-            Node visited = findMinDistance(graph);
-            visited.visited = true;
+        start.accumulatedRisklevels = 0;
+        final Set<Node> visitedNodes = new HashSet<>();
+        final Set<Node> toBeEvaluated = new HashSet<>(of(start));
 
-            // Update all the neighbouring vertex distances
-            visited.neighbors.forEach((neighbor, riskLevel) -> {
-                if(!neighbor.visited && riskLevel != 0 && (visited.distance + riskLevel < neighbor.distance)) {
-                    neighbor.distance = visited.distance + riskLevel;
+        range(0, Integer.MAX_VALUE).takeWhile(ignore -> !toBeEvaluated.isEmpty()).forEach(ignore -> {
+
+            final Node nodeWithLowestAccumulatedRisklevel = toBeEvaluated.stream().min(comparingInt(node -> node.accumulatedRisklevels)).orElseThrow();
+            toBeEvaluated.remove(nodeWithLowestAccumulatedRisklevel);
+            nodeWithLowestAccumulatedRisklevel.neighbors.forEach((neighbor, riskLevel) -> {
+                if (!visitedNodes.contains(neighbor)) {
+                    if (nodeWithLowestAccumulatedRisklevel.accumulatedRisklevels + riskLevel < neighbor.accumulatedRisklevels)
+                        neighbor.accumulatedRisklevels = nodeWithLowestAccumulatedRisklevel.accumulatedRisklevels + riskLevel;
+                    toBeEvaluated.add(neighbor);
                 }
             });
+            visitedNodes.add(nodeWithLowestAccumulatedRisklevel);
         });
-        return graph.get(graph.size() - 1).distance;
+        return graph.get(graph.size() - 1).accumulatedRisklevels;
     }
 
     public long solvePart1(final List<List<Node>> graph) { // 748
@@ -70,7 +59,7 @@ public class App {
     public long solvePart2(final List<List<Node>> graph) { // 3045
         final List<List<Node>> biggerGraph = connectWithNeighbors(range(0, 5 * graph.size()).mapToObj(y -> range(0, 5 * graph.get(0).size()).mapToObj(x -> {
             final Node node = graph.get(y % graph.size()).get(x % graph.get(0).size());
-            int newRiskLevel = (node.riskLevel + y / graph.size() + x / graph.get(0).size());
+            int newRiskLevel = (node.risklevel + y / graph.size() + x / graph.get(0).size());
             if(newRiskLevel > 9)
                 newRiskLevel = (newRiskLevel % 10) + 1;
             return new Node(new Position(x, y), newRiskLevel);
