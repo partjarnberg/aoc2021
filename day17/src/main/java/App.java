@@ -40,18 +40,18 @@ public class App {
         }
 
         Measurement launch(final Velocity velocity) {
-            var ref = new Measurement(velocity, new Point(0, 0), 0);
-            rangeClosed(1, Integer.MAX_VALUE).takeWhile(step -> !isWithinTargetArea(ref.probePosition) &&
-                                    notWithinTargetArea(ref.probePosition) && !beyondTargetArea(ref.probePosition)).forEach(step -> {
-                int newX = ref.probePosition.x, newY = ref.probePosition.y;
+            var measurement = new Measurement(velocity, new Point(0, 0), 0);
+            rangeClosed(1, Integer.MAX_VALUE).takeWhile(step -> !isWithinTargetArea(measurement.probePosition) &&
+                                    notWithinTargetArea(measurement.probePosition) && !beyondTargetArea(measurement.probePosition)).forEach(step -> {
+                int newX = measurement.probePosition.x, newY = measurement.probePosition.y;
                 newX += velocity.x;
                 newY += velocity.y;
                 velocity.x = updateDragFactor(velocity.x);
                 velocity.y -= 1;
-                ref.probePosition = new Point(newX, newY);
-                ref.maxY = max(newY, ref.maxY);
+                measurement.probePosition = new Point(newX, newY);
+                measurement.maxY = max(newY, measurement.maxY);
             });
-            return ref;
+            return measurement;
         }
 
         boolean isWithinTargetArea(final Point probePosition) {
