@@ -34,12 +34,6 @@ public class App {
         return List.of(above, middle, below);
     }
 
-    public long solvePart1(final ImageEnhancer imageEnhancer, final List<List<Character>> image) { // 5563
-        final AtomicReference<List<List<Character>>> templateImage = enhance(imageEnhancer, image, 2);
-
-        return templateImage.get().stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
-    }
-
     AtomicReference<List<List<Character>>> enhance(final ImageEnhancer imageEnhancer, final List<List<Character>> image, final int noofTimes) {
         final AtomicReference<List<List<Character>>> templateImage = new AtomicReference<>();
         final AtomicReference<List<List<Character>>> resizedImage = new AtomicReference<>(resize(image, '.'));
@@ -85,16 +79,20 @@ public class App {
         return resizedImage;
     }
 
-    public long solvePart2() { //
-        return 0;
+    public long solvePart1(final ImageEnhancer imageEnhancer, final List<List<Character>> image) { // 5563
+        return enhance(imageEnhancer, image, 2).get().stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
+    }
+
+    public long solvePart2(final ImageEnhancer imageEnhancer, final List<List<Character>> image) { //
+        return enhance(imageEnhancer, image, 50).get().stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
     }
 
     public static void main(String[] args) throws IOException {
         ImageEnhancer imageEnhancer = Files.lines(Path.of("input.txt")).limit(1).map(ImageEnhancer::new).findFirst().orElseThrow();
         final List<List<Character>> image = Files.lines(Path.of("input.txt")).skip(2)
                 .map(line -> line.chars().mapToObj(c -> (char) c).toList()).toList();
-        System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ?
+        System.out.println((getenv("part") == null ? "part2" : getenv("part")).equalsIgnoreCase("part1") ?
                 new App().solvePart1(imageEnhancer, image) :
-                new App().solvePart2());
+                new App().solvePart2(imageEnhancer, image));
     }
 }
