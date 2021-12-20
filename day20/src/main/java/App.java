@@ -39,22 +39,29 @@ public class App {
         final AtomicReference<List<List<Character>>> resizedImage = new AtomicReference<>(resize(image, '.'));
         rangeClosed(1, noofTimes).forEach(times -> {
             templateImage.set(createTemplateImageFrom(resizedImage.get()));
+
             range(1, templateImage.get().size() - 1).forEach(y -> range(1, templateImage.get().get(0).size() - 1).forEach(x -> {
                 final List<List<Character>> x3SquareFor = get3x3SquareFor(y, x, resizedImage.get());
                 final Character pixel = imageEnhancer.calculateOutputPixelFor(x3SquareFor);
                 templateImage.get().get(y).set(x, pixel);
             }));
-            templateImage.get().remove(0);
-            templateImage.get().remove(templateImage.get().size() - 1);
-            templateImage.get().forEach(row -> {
-                row.remove(0);
-                row.remove(row.size() - 1);
-            });
+
+            templateImage.set(removeUnusedBorder(templateImage.get()));
 
             if(imageEnhancer.algoritm.startsWith("#"))
-               resizedImage.set(resize(templateImage.get(), times % 2 == 0 ? '.' : '#'));
+                resizedImage.set(resize(templateImage.get(), times % 2 == 0 ? '.' : '#'));
             else
                 resizedImage.set(resize(templateImage.get(), '.'));
+        });
+        return templateImage;
+    }
+
+    private List<List<Character>> removeUnusedBorder(final List<List<Character>> templateImage) {
+        templateImage.remove(0);
+        templateImage.remove(templateImage.size() - 1);
+        templateImage.forEach(row -> {
+            row.remove(0);
+            row.remove(row.size() - 1);
         });
         return templateImage;
     }
@@ -83,7 +90,7 @@ public class App {
         return enhance(imageEnhancer, image, 2).get().stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
     }
 
-    public long solvePart2(final ImageEnhancer imageEnhancer, final List<List<Character>> image) { //
+    public long solvePart2(final ImageEnhancer imageEnhancer, final List<List<Character>> image) { // 19743
         return enhance(imageEnhancer, image, 50).get().stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
     }
 
@@ -91,7 +98,7 @@ public class App {
         ImageEnhancer imageEnhancer = Files.lines(Path.of("input.txt")).limit(1).map(ImageEnhancer::new).findFirst().orElseThrow();
         final List<List<Character>> image = Files.lines(Path.of("input.txt")).skip(2)
                 .map(line -> line.chars().mapToObj(c -> (char) c).toList()).toList();
-        System.out.println((getenv("part") == null ? "part2" : getenv("part")).equalsIgnoreCase("part1") ?
+        System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ?
                 new App().solvePart1(imageEnhancer, image) :
                 new App().solvePart2(imageEnhancer, image));
     }
