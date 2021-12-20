@@ -12,14 +12,14 @@ import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
 
 public class App {
-    record ImageEnhancer(String algoritm) {
+    record ImageEnhancer(String algorithm) {
         Character calculateOutputPixelFor(final List<List<Character>> square) {
             final String binaryString = range(0, 3).mapToObj(y -> range(0, 3).mapToObj(x ->
                             valueOf(square.get(y).get(x))).toList()).flatMap(List::stream).collect(joining())
                     .replace(".", "0")
                     .replace("#", "1");
             int index = binaryToInt(binaryString);
-            return algoritm.charAt(index);
+            return algorithm.charAt(index);
         }
 
         int binaryToInt(final String binaryString) {
@@ -27,14 +27,7 @@ public class App {
         }
     }
 
-    List<List<Character>> get3x3SquareFor(final int y, final int x, final List<List<Character>> image) {
-        final List<Character> above = image.get(y - 1).subList(x - 1, x + 2);
-        final List<Character> middle = image.get(y).subList(x - 1, x + 2);
-        final List<Character> below = image.get(y + 1).subList(x - 1, x + 2);
-        return List.of(above, middle, below);
-    }
-
-    AtomicReference<List<List<Character>>> enhance(final ImageEnhancer imageEnhancer, final List<List<Character>> image, final int noofTimes) {
+    List<List<Character>> enhance(final ImageEnhancer imageEnhancer, final List<List<Character>> image, final int noofTimes) {
         final AtomicReference<List<List<Character>>> templateImage = new AtomicReference<>();
         final AtomicReference<List<List<Character>>> resizedImage = new AtomicReference<>(resize(image, '.'));
         rangeClosed(1, noofTimes).forEach(times -> {
@@ -48,12 +41,19 @@ public class App {
 
             templateImage.set(removeUnusedBorder(templateImage.get()));
 
-            if(imageEnhancer.algoritm.startsWith("#"))
+            if(imageEnhancer.algorithm.startsWith("#"))
                 resizedImage.set(resize(templateImage.get(), times % 2 == 0 ? '.' : '#'));
             else
                 resizedImage.set(resize(templateImage.get(), '.'));
         });
-        return templateImage;
+        return templateImage.get();
+    }
+
+    private List<List<Character>> get3x3SquareFor(final int y, final int x, final List<List<Character>> image) {
+        final List<Character> above = image.get(y - 1).subList(x - 1, x + 2);
+        final List<Character> middle = image.get(y).subList(x - 1, x + 2);
+        final List<Character> below = image.get(y + 1).subList(x - 1, x + 2);
+        return List.of(above, middle, below);
     }
 
     private List<List<Character>> removeUnusedBorder(final List<List<Character>> templateImage) {
@@ -66,7 +66,7 @@ public class App {
         return templateImage;
     }
 
-    private ArrayList<List<Character>> createTemplateImageFrom(final List<List<Character>> image) {
+    private List<List<Character>> createTemplateImageFrom(final List<List<Character>> image) {
         return new ArrayList<>(range(0, image.size())
                 .mapToObj(y -> new ArrayList<>(range(0, image.get(0).size()).mapToObj(x -> '.').toList()))
                 .toList());
@@ -87,18 +87,18 @@ public class App {
     }
 
     public long solvePart1(final ImageEnhancer imageEnhancer, final List<List<Character>> image) { // 5563
-        return enhance(imageEnhancer, image, 2).get().stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
+        return enhance(imageEnhancer, image, 2).stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
     }
 
     public long solvePart2(final ImageEnhancer imageEnhancer, final List<List<Character>> image) { // 19743
-        return enhance(imageEnhancer, image, 50).get().stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
+        return enhance(imageEnhancer, image, 50).stream().flatMap(List::stream).filter(c -> c.equals('#')).count();
     }
 
     public static void main(String[] args) throws IOException {
         ImageEnhancer imageEnhancer = Files.lines(Path.of("input.txt")).limit(1).map(ImageEnhancer::new).findFirst().orElseThrow();
         final List<List<Character>> image = Files.lines(Path.of("input.txt")).skip(2)
                 .map(line -> line.chars().mapToObj(c -> (char) c).toList()).toList();
-        System.out.println((getenv("part") == null ? "part1" : getenv("part")).equalsIgnoreCase("part1") ?
+        System.out.println((getenv("part") == null ? "part2" : getenv("part")).equalsIgnoreCase("part1") ?
                 new App().solvePart1(imageEnhancer, image) :
                 new App().solvePart2(imageEnhancer, image));
     }
